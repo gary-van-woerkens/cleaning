@@ -2,10 +2,13 @@ name: 'Your name here'
 description: 'Provide a description here'
 author: 'Your name or organization here'
 inputs:
-  milliseconds: # change this
+  retention-weeks:
+    default: '2'
     required: true
-    description: 'input description here'
-    default: 'default value if applicable'
+    description: 'Number of weeks of retention preventing packages from being deleted'
+  containers:
+    default: ''
+    description: 'List of packages to purge'
 runs:
   using: 'node12'
   main: 'dist/index.js'

@@ -1,16 +1,25 @@
-import * as core from '@actions/core'
-import {wait} from './wait'
+import * as core from "@actions/core"
+import purge from "./purge"
+
+const PAGE_LIMIT = 100 // Number of packages per page (from 1 to 100)
+const START_PAGE_INDEX = 1 // Starting page index
+const RETENTION_WEEKS = Number(core.getInput("retention-weeks"))
+
+const containers = core.getInput("containers").split("\n")
 
 async function run(): Promise<void> {
   try {
-    const ms: string = core.getInput('milliseconds')
-    core.debug(`Waiting ${ms} milliseconds ...`) // debug is only output if you set the secret `ACTIONS_STEP_DEBUG` to true
-
-    core.debug(new Date().toTimeString())
-    await wait(parseInt(ms, 10))
-    core.debug(new Date().toTimeString())
-
-    core.setOutput('time', new Date().toTimeString())
+    for (const container of containers) {
+      core.debug(`===> Container: ${container}`)
+      const count = await purge(
+        container,
+        START_PAGE_INDEX,
+        PAGE_LIMIT,
+        RETENTION_WEEKS
+      )
+      core.debug(`Versions deleted: ${count}`)
+      core.debug("--------------------")
+    }
   } catch (error) {
     if (error instanceof Error) core.setFailed(error.message)
   }
