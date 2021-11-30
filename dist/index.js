@@ -42,20 +42,25 @@ const core = __importStar(__nccwpck_require__(2186));
 const purge_1 = __importDefault(__nccwpck_require__(6785));
 const PAGE_LIMIT = 100; // Number of packages per page (from 1 to 100)
 const START_PAGE_INDEX = 1; // Starting page index
+const CONTAINERS = core.getMultilineInput("containers");
 const RETENTION_WEEKS = Number(core.getInput("retention-weeks"));
-// const RETENTION_WEEKS = 2
-const containers = core.getInput("containers").split("\n");
-// const containers = ["cdtn/code-du-travail-frontend"]
-// const containers = ["cdtn/elasticsearch"]
+core.debug("------ INPUTS ------");
+core.debug(`containers: ${CONTAINERS}`);
+core.debug(`token: ${!!core.getInput("token")}`);
+core.debug(`retention-weeks: ${RETENTION_WEEKS}`);
+core.debug("--------------------");
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
+        let total = 0;
         try {
-            for (const container of containers) {
+            for (const container of CONTAINERS) {
                 core.debug(`===> Container: ${container}`);
                 const count = yield (0, purge_1.default)(container, START_PAGE_INDEX, PAGE_LIMIT, RETENTION_WEEKS);
-                core.debug(`Total versions deleted: ${count}`);
+                core.debug(`===> Package versions deleted: ${count}`);
                 core.debug("--------------------");
+                total += count;
             }
+            core.setOutput("total", total);
         }
         catch (error) {
             if (error instanceof Error)
@@ -113,7 +118,7 @@ const isBefore_1 = __importDefault(__nccwpck_require__(9369));
 const p_throttle_1 = __importDefault(__nccwpck_require__(9296));
 const sub_1 = __importDefault(__nccwpck_require__(3875));
 const octokit = new octokit_1.Octokit({
-    auth: core.getInput("token") || process.env.GITHUB_TOKEN,
+    auth: core.getInput("token"),
 });
 const protectedTags = [
     /^prod$/,
