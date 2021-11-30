@@ -4,7 +4,7 @@
 import { expect, test } from "@jest/globals"
 import purge from "../src/purge"
 
-const container = "fabrique/www"
+const container = "fabrique/standup"
 
 test(`Purge container ${container}`, async () => {
   const count = await purge(container, 1, 100, 4)

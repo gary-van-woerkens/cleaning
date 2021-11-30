@@ -53,7 +53,7 @@ function run() {
             for (const container of containers) {
                 core.debug(`===> Container: ${container}`);
                 const count = yield (0, purge_1.default)(container, START_PAGE_INDEX, PAGE_LIMIT, RETENTION_WEEKS);
-                core.debug(`Versions deleted: ${count}`);
+                core.debug(`Total versions deleted: ${count}`);
                 core.debug("--------------------");
             }
         }
@@ -113,7 +113,7 @@ const isBefore_1 = __importDefault(__nccwpck_require__(9369));
 const p_throttle_1 = __importDefault(__nccwpck_require__(9296));
 const sub_1 = __importDefault(__nccwpck_require__(3875));
 const octokit = new octokit_1.Octokit({
-    auth: "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",
+    auth: core.getInput("token") || process.env.GITHUB_TOKEN,
 });
 const protectedTags = [
     /^prod$/,
@@ -19367,14 +19367,11 @@ function onceStrict (fn) {
 /***/ }),
 
 /***/ 9296:
-/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __nccwpck_require__) => {
+/***/ ((module) => {
 
 "use strict";
-__nccwpck_require__.r(__webpack_exports__);
-/* harmony export */ __nccwpck_require__.d(__webpack_exports__, {
-/* harmony export */   "AbortError": () => (/* binding */ AbortError),
-/* harmony export */   "default": () => (/* binding */ pThrottle)
-/* harmony export */ });
+
+
 class AbortError extends Error {
 	constructor() {
 		super('Throttled function aborted');
@@ -19382,7 +19379,7 @@ class AbortError extends Error {
 	}
 }
 
-function pThrottle({limit, interval, strict}) {
+const pThrottle = ({limit, interval, strict}) => {
 	if (!Number.isFinite(limit)) {
 		throw new TypeError('Expected `limit` to be a finite number');
 	}
@@ -19471,7 +19468,10 @@ function pThrottle({limit, interval, strict}) {
 
 		return throttled;
 	};
-}
+};
+
+module.exports = pThrottle;
+module.exports.AbortError = AbortError;
 
 
 /***/ }),
@@ -20576,34 +20576,6 @@ module.exports = require("zlib");
 /******/ 	}
 /******/ 	
 /************************************************************************/
-/******/ 	/* webpack/runtime/define property getters */
-/******/ 	(() => {
-/******/ 		// define getter functions for harmony exports
-/******/ 		__nccwpck_require__.d = (exports, definition) => {
-/******/ 			for(var key in definition) {
-/******/ 				if(__nccwpck_require__.o(definition, key) && !__nccwpck_require__.o(exports, key)) {
-/******/ 					Object.defineProperty(exports, key, { enumerable: true, get: definition[key] });
-/******/ 				}
-/******/ 			}
-/******/ 		};
-/******/ 	})();
-/******/ 	
-/******/ 	/* webpack/runtime/hasOwnProperty shorthand */
-/******/ 	(() => {
-/******/ 		__nccwpck_require__.o = (obj, prop) => (Object.prototype.hasOwnProperty.call(obj, prop))
-/******/ 	})();
-/******/ 	
-/******/ 	/* webpack/runtime/make namespace object */
-/******/ 	(() => {
-/******/ 		// define __esModule on exports
-/******/ 		__nccwpck_require__.r = (exports) => {
-/******/ 			if(typeof Symbol !== 'undefined' && Symbol.toStringTag) {
-/******/ 				Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
-/******/ 			}
-/******/ 			Object.defineProperty(exports, '__esModule', { value: true });
-/******/ 		};
-/******/ 	})();
-/******/ 	
 /******/ 	/* webpack/runtime/compat */
 /******/ 	
 /******/ 	if (typeof __nccwpck_require__ !== 'undefined') __nccwpck_require__.ab = __dirname + "/";

@@ -10,7 +10,7 @@ type PackageVersionsResponse =
   Endpoints["GET /orgs/{org}/packages/{package_type}/{package_name}/versions"]["response"]
 
 const octokit = new Octokit({
-  auth: core.getInput("token"),
+  auth: core.getInput("token") || process.env.GITHUB_TOKEN,
 })
 
 const protectedTags = [
