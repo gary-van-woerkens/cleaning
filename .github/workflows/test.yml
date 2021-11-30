@@ -25,6 +25,7 @@ jobs:
 
     - uses: ./
       with:
+        token: ${{ secrets.SOCIALGROOVYBOT_BOTO_PAT }}
         retention-weeks: '2'
         containers: |
           fabrique/standup

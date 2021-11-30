@@ -10,7 +10,7 @@ type PackageVersionsResponse =
   Endpoints["GET /orgs/{org}/packages/{package_type}/{package_name}/versions"]["response"]
 
 const octokit = new Octokit({
-  auth: process.env.SOCIALGROOVYBOT_BOTO_PAT,
+  auth: core.getInput("token"),
 })
 
 const protectedTags = [
