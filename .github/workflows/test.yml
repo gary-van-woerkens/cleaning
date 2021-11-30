@@ -16,6 +16,8 @@ jobs:
     - run: yarn --frozen-lockfile --prefer-offline
 
     - run: yarn all
+      env: |
+        INPUT_TOKEN=${{ github.token }}
 
   test: # make sure the action works on a clean machine without building
     runs-on: ubuntu-latest
