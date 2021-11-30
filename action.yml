@@ -13,7 +13,7 @@ inputs:
   containers:
     default: ''
     required: true
-    description: 'List of packages to purge'
+    description: 'List of container packages to clean up'
 runs:
   using: 'node12'
   main: 'dist/index.js'
