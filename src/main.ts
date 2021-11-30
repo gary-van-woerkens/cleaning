@@ -4,8 +4,11 @@ import purge from "./purge"
 const PAGE_LIMIT = 100 // Number of packages per page (from 1 to 100)
 const START_PAGE_INDEX = 1 // Starting page index
 const RETENTION_WEEKS = Number(core.getInput("retention-weeks"))
+// const RETENTION_WEEKS = 2
 
 const containers = core.getInput("containers").split("\n")
+// const containers = ["cdtn/code-du-travail-frontend"]
+// const containers = ["cdtn/elasticsearch"]
 
 async function run(): Promise<void> {
   try {
@@ -17,7 +20,7 @@ async function run(): Promise<void> {
         PAGE_LIMIT,
         RETENTION_WEEKS
       )
-      core.debug(`Versions deleted: ${count}`)
+      core.debug(`Total versions deleted: ${count}`)
       core.debug("--------------------")
     }
   } catch (error) {

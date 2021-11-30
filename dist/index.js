@@ -40,19 +40,13 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const core = __importStar(__nccwpck_require__(2186));
 const purge_1 = __importDefault(__nccwpck_require__(6785));
-// const images = ["cdtn/code-du-travail-frontend"]
-// const images = [
-//   "fabrique/www",
-//   "fabrique/standup",
-//   "fabrique/carnets",
-//   "fabrique/hasura"
-// ]
-// const images = ["nos1000jours/les1000jours-landing"]
-// const images = ["nos1000jours/nos1000jours-web-pro"]
 const PAGE_LIMIT = 100; // Number of packages per page (from 1 to 100)
 const START_PAGE_INDEX = 1; // Starting page index
 const RETENTION_WEEKS = Number(core.getInput("retention-weeks"));
+// const RETENTION_WEEKS = 2
 const containers = core.getInput("containers").split("\n");
+// const containers = ["cdtn/code-du-travail-frontend"]
+// const containers = ["cdtn/elasticsearch"]
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
         try {
@@ -118,30 +112,27 @@ const delay_1 = __importDefault(__nccwpck_require__(86));
 const isBefore_1 = __importDefault(__nccwpck_require__(9369));
 const p_throttle_1 = __importDefault(__nccwpck_require__(9296));
 const sub_1 = __importDefault(__nccwpck_require__(3875));
-const octokit = new octokit_1.Octokit({ auth: "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" });
+const octokit = new octokit_1.Octokit({
+    auth: "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",
+});
 const protectedTags = [
     /^prod$/,
     /^latest$/,
     /^preprod$/,
     /^prod-(\w+)$/,
-    /^(\d+\.\d+)(\.\d+)?$/
+    /^(\d+\.\d+)(\.\d+)?$/,
 ];
-const isProtectedTag = (tag) => protectedTags.some(protectedTag => protectedTag.test(tag));
+const isProtectedTag = (tag) => protectedTags.some((protectedTag) => protectedTag.test(tag));
 exports.isProtectedTag = isProtectedTag;
 const isOldVersion = (updateDate, retentionWeeks) => (0, isBefore_1.default)(new Date(updateDate), (0, sub_1.default)(new Date(), { weeks: retentionWeeks }));
 exports.isOldVersion = isOldVersion;
 const deletePackageVersion = (packageName, versionId) => __awaiter(void 0, void 0, void 0, function* () {
-    try {
-        yield octokit.request("DELETE /orgs/{org}/packages/{package_type}/{package_name}/versions/{package_version_id}", {
-            org: "socialgouv",
-            package_type: "container",
-            package_name: packageName,
-            package_version_id: versionId
-        });
-    }
-    catch (error) {
-        throw error;
-    }
+    yield octokit.request("DELETE /orgs/{org}/packages/{package_type}/{package_name}/versions/{package_version_id}", {
+        org: "socialgouv",
+        package_type: "container",
+        package_name: packageName,
+        package_version_id: versionId,
+    });
 });
 exports.deletePackageVersion = deletePackageVersion;
 const deletePackageVersions = (packageName, versions) => __awaiter(void 0, void 0, void 0, function* () {
@@ -154,25 +145,20 @@ const deletePackageVersions = (packageName, versions) => __awaiter(void 0, void 
 });
 exports.deletePackageVersions = deletePackageVersions;
 const getPackageVersions = (name, page, limit) => __awaiter(void 0, void 0, void 0, function* () {
-    try {
-        const result = yield octokit.request("GET /orgs/{org}/packages/{package_type}/{package_name}/versions", {
-            page,
-            per_page: limit,
-            org: "socialgouv",
-            package_name: name,
-            package_type: "container"
-        });
-        return result.data;
-    }
-    catch (error) {
-        throw error;
-    }
+    const result = yield octokit.request("GET /orgs/{org}/packages/{package_type}/{package_name}/versions", {
+        page,
+        per_page: limit,
+        org: "socialgouv",
+        package_name: name,
+        package_type: "container",
+    });
+    return result.data;
 });
 exports.getPackageVersions = getPackageVersions;
-const getVersionsToDelete = (versions, retentionWeeks) => versions.filter(version => {
+const getVersionsToDelete = (versions, retentionWeeks) => versions.filter((version) => {
     var _a, _b;
     return (0, exports.isOldVersion)(version.updated_at, retentionWeeks) &&
-        !((_b = (_a = version.metadata) === null || _a === void 0 ? void 0 : _a.container) === null || _b === void 0 ? void 0 : _b.tags.some(tag => (0, exports.isProtectedTag)(String(tag))));
+        !((_b = (_a = version.metadata) === null || _a === void 0 ? void 0 : _a.container) === null || _b === void 0 ? void 0 : _b.tags.some((tag) => (0, exports.isProtectedTag)(String(tag))));
 });
 exports.getVersionsToDelete = getVersionsToDelete;
 const purge = (packageName, page = 1, limit = 100, retentionWeeks = 2) => __awaiter(void 0, void 0, void 0, function* () {
@@ -181,10 +167,7 @@ const purge = (packageName, page = 1, limit = 100, retentionWeeks = 2) => __awai
     core.debug(`==> Page ${page} (limit: ${limit})`);
     const versions = yield (0, exports.getPackageVersions)(packageName, page, limit);
     core.debug(`Versions found: ${versions.length}`);
-    if (!versions.length && page > 1) {
-        count += yield purge(packageName, page - 1, limit, retentionWeeks);
-    }
-    else if (versions.length) {
+    if (versions.length) {
         const versionsToDelete = (0, exports.getVersionsToDelete)(versions, retentionWeeks);
         core.debug(`Versions to delete: ${versionsToDelete.length}`);
         count += versionsToDelete.length;

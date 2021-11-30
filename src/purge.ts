@@ -1,6 +1,6 @@
 import * as core from "@actions/core"
-import type {Endpoints} from "@octokit/types"
-import {Octokit} from "octokit"
+import type { Endpoints } from "@octokit/types"
+import { Octokit } from "octokit"
 import delay from "delay"
 import isBefore from "date-fns/isBefore"
 import pThrottle from "p-throttle"
@@ -9,49 +9,47 @@ import sub from "date-fns/sub"
 type PackageVersionsResponse =
   Endpoints["GET /orgs/{org}/packages/{package_type}/{package_name}/versions"]["response"]
 
-const octokit = new Octokit({auth: "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"})
+const octokit = new Octokit({
+  auth: "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",
+})
 
 const protectedTags = [
   /^prod$/,
   /^latest$/,
   /^preprod$/,
   /^prod-(\w+)$/,
-  /^(\d+\.\d+)(\.\d+)?$/
+  /^(\d+\.\d+)(\.\d+)?$/,
 ]
 
 export const isProtectedTag = (tag: string): boolean =>
-  protectedTags.some(protectedTag => protectedTag.test(tag))
+  protectedTags.some((protectedTag) => protectedTag.test(tag))
 
 export const isOldVersion = (
   updateDate: string,
   retentionWeeks: number
 ): boolean =>
-  isBefore(new Date(updateDate), sub(new Date(), {weeks: retentionWeeks}))
+  isBefore(new Date(updateDate), sub(new Date(), { weeks: retentionWeeks }))
 
 export const deletePackageVersion = async (
   packageName: string,
   versionId: number
 ): Promise<void> => {
-  try {
-    await octokit.request(
-      "DELETE /orgs/{org}/packages/{package_type}/{package_name}/versions/{package_version_id}",
-      {
-        org: "socialgouv",
-        package_type: "container",
-        package_name: packageName,
-        package_version_id: versionId
-      }
-    )
-  } catch (error) {
-    throw error
-  }
+  await octokit.request(
+    "DELETE /orgs/{org}/packages/{package_type}/{package_name}/versions/{package_version_id}",
+    {
+      org: "socialgouv",
+      package_type: "container",
+      package_name: packageName,
+      package_version_id: versionId,
+    }
+  )
 }
 
 export const deletePackageVersions = async (
   packageName: string,
   versions: PackageVersionsResponse["data"]
 ): Promise<void> => {
-  const throttle = pThrottle({limit: 1, interval: 800})
+  const throttle = pThrottle({ limit: 1, interval: 800 })
 
   const throttled = throttle(async (id: number) =>
     deletePackageVersion(packageName, id)
@@ -68,21 +66,17 @@ export const getPackageVersions = async (
   page: number,
   limit: number
 ): Promise<PackageVersionsResponse["data"]> => {
-  try {
-    const result = await octokit.request(
-      "GET /orgs/{org}/packages/{package_type}/{package_name}/versions",
-      {
-        page,
-        per_page: limit,
-        org: "socialgouv",
-        package_name: name,
-        package_type: "container"
-      }
-    )
-    return result.data
-  } catch (error) {
-    throw error
-  }
+  const result = await octokit.request(
+    "GET /orgs/{org}/packages/{package_type}/{package_name}/versions",
+    {
+      page,
+      per_page: limit,
+      org: "socialgouv",
+      package_name: name,
+      package_type: "container",
+    }
+  )
+  return result.data
 }
 
 export const getVersionsToDelete = (
@@ -90,9 +84,9 @@ export const getVersionsToDelete = (
   retentionWeeks: number
 ): PackageVersionsResponse["data"] =>
   versions.filter(
-    version =>
+    (version) =>
       isOldVersion(version.updated_at, retentionWeeks) &&
-      !version.metadata?.container?.tags.some(tag =>
+      !version.metadata?.container?.tags.some((tag) =>
         isProtectedTag(String(tag))
       )
   )
@@ -109,9 +103,7 @@ const purge = async (
   const versions = await getPackageVersions(packageName, page, limit)
   core.debug(`Versions found: ${versions.length}`)
 
-  if (!versions.length && page > 1) {
-    count += await purge(packageName, page - 1, limit, retentionWeeks)
-  } else if (versions.length) {
+  if (versions.length) {
     const versionsToDelete = getVersionsToDelete(versions, retentionWeeks)
     core.debug(`Versions to delete: ${versionsToDelete.length}`)
     count += versionsToDelete.length
